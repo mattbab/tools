@@ -1,5 +1,6 @@
 import requests
 from langchain.chat_models import ChatOllama
+from langchain_community.utilities import WikipediaAPIWrapper
 
 def setup(ToolManager):
     ToolManager.add(web_search_tool)
@@ -225,13 +226,16 @@ def wikipedia_search_tool(query:str)->str:
         people, places, companies, facts, historical events, and concepts.
     """
     print("Searching wikipedia...")
-    se_resp = web_search(
-        query, 
-        format="json", 
-        engines="wikipedia",
-    )
-    se_url = '\n'.join(result['url'] for result in se_resp['results'][:3])
-    se_resp = '\n'.join(result['content'] for result in se_resp['results'][:3])
+    wikipedia = WikipediaAPIWrapper()
+    # se_resp = web_search(
+    #     query, 
+    #     format="json", 
+    #     engines="wikipedia",
+    # )
+    se_resp = wikipedia.load(query)
+    se_url = None
+    se_url = '\n'.join(result.metadata["source"] for result in se_resp[:3])
+    se_resp = '\n'.join(result.metadata["summary"] for result in se_resp[:3])
     reassess_instructionsextract_instructions = f"""
     System: 
     <System>
@@ -688,9 +692,8 @@ def main():
     # wikipedia
 
     # print(results)
-    print(wikipedia_search_tool("""January 6th"""))
+    print(wikipedia_search_tool("""What is the best way to cook bread?"""))
 
 if __name__ == "__main__":
     main()
-
 
