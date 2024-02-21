@@ -383,33 +383,54 @@ def calculate_easter_date(year: int) -> str:
     return datetime(year, month, day).strftime("%Y-%m-%d")
 
 
-def is_holiday(target_date: date, country_code: str = 'US') -> bool:
+def is_holiday(target_date_str: str, country_code: str = 'US') -> bool:
     """
     Checks if a given date is a holiday in the specified country.
 
     Parameters:
-    - target_date: The date to check.
+    - target_date_str: The date to check as a string in 'YYYY-MM-DD' format.
     - country_code: ISO 3166-1 alpha-2 country code. Defaults to 'US'.
 
     Returns:
     - True if the date is a holiday, False otherwise.
     """
+    target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
     country_holidays = holidays.country_holidays(country_code)
     return target_date in country_holidays
 
-def get_holiday_name(target_date: date, country_code: str = 'US') -> Optional[str]:
+def get_holiday_name(target_date_str: str, country_code: str = 'US') -> Optional[str]:
     """
     Retrieves the name of the holiday for a given date in the specified country, if it's a holiday.
 
     Parameters:
-    - target_date: The date for which to retrieve the holiday name.
+    - target_date_str: The date for which to retrieve the holiday name as a string in 'YYYY-MM-DD' format.
     - country_code: ISO 3166-1 alpha-2 country code. Defaults to 'US'.
 
     Returns:
     - The name of the holiday if the date is a holiday, None otherwise.
     """
+    target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
     country_holidays = holidays.country_holidays(country_code)
     return country_holidays.get(target_date)
+
+def next_holiday(target_date_str: str, country_code: str = 'US') -> Optional[str]:
+    """
+    Finds the next holiday after a given date in the specified country.
+
+    Parameters:
+    - target_date_str: The date from which to find the next holiday as a string in 'YYYY-MM-DD' format.
+    - country_code: ISO 3166-1 alpha-2 country code. Defaults to 'US'.
+
+    Returns:
+    - A string representing the next holiday and its date, None if there are no more holidays in the year.
+    """
+    target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
+    country_holidays = holidays.country_holidays(country_code, years=target_date.year)
+    future_holidays = {day: name for day, name in country_holidays.items() if day > target_date}
+    if future_holidays:
+        next_holiday_date = min(future_holidays.keys())
+        return f"{next_holiday_date}: {future_holidays[next_holiday_date]}"
+    return None
 
 def list_holidays(year: int, country_code: str = 'US') -> List[str]:
     """
@@ -424,24 +445,6 @@ def list_holidays(year: int, country_code: str = 'US') -> List[str]:
     """
     country_holidays = holidays.country_holidays(country_code, years=year)
     return [f"{day}: {name}" for day, name in country_holidays.items()]
-
-def next_holiday(target_date: date, country_code: str = 'US') -> Optional[str]:
-    """
-    Finds the next holiday after a given date in the specified country.
-
-    Parameters:
-    - target_date: The date from which to find the next holiday.
-    - country_code: ISO 3166-1 alpha-2 country code. Defaults to 'US'.
-
-    Returns:
-    - A string representing the next holiday and its date, None if there are no more holidays in the year.
-    """
-    country_holidays = holidays.country_holidays(country_code, years=target_date.year)
-    future_holidays = {day: name for day, name in country_holidays.items() if day > target_date}
-    if future_holidays:
-        next_holiday_date = min(future_holidays.keys())
-        return f"{next_holiday_date}: {future_holidays[next_holiday_date]}"
-    return None
 
 def main():
     """
